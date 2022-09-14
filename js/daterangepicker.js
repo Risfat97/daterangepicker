@@ -55,6 +55,16 @@ class DateRangePicker {
                 <th>D</th>
             </tr>
         `;
+        let tr;
+        for(let i = 0; i < 30; i++) {
+            if(i % 7 === 0){
+                tr = document.createElement('tr');
+                tbody.appendChild(tr);
+            }
+            const td = document.createElement('td');
+            td.textContent = `${i+1}`;
+            tr.appendChild(td);
+        }
         tableElem.appendChild(thead);
         tableElem.appendChild(tbody);
 
