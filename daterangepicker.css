@@ -1,3 +1,7 @@
+:root {
+    --col-dark-blue: #2C3E50;
+}
+
 .cal-container * {
     margin: 0;
 }
@@ -47,4 +51,14 @@
 
 .cal-hide {
     display: none;
+}
+
+.cal-row-table > th,
+.cal-row-table > td {
+    padding: 6px;
+}
+
+.cal-current-date {
+    border: 1px solid var(--col-dark-blue);
+    border-radius: 50%;
 }
