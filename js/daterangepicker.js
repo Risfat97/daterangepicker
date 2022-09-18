@@ -173,6 +173,7 @@ class DateRangePicker {
         `;
 
         DateRangePicker.#generateBodyTable(instance, tbody, year, month);
+        
         tableElem.appendChild(thead);
         tableElem.appendChild(tbody);
         return tableElem;
