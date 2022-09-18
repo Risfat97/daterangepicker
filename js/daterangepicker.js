@@ -19,7 +19,7 @@ class DateRangePicker {
         const posTarget = target.getBoundingClientRect();
         calendarDOM.setAttribute('class', 'cal-container');
         calendarDOM.style.left = `${posTarget.x}px`;
-        calendarDOM.style.top = `${posTarget.y + posTarget.height}px`;
+        calendarDOM.style.top = `${posTarget.y + posTarget.height + 0.5}px`;
     }
 
     static #handleClickBtnNav(instance, date, calendar, direction) {
@@ -41,7 +41,7 @@ class DateRangePicker {
     static #handleClickBtnSelectYear(inputYear, instance, tableContainer, yearSpan) {
         if(/[0-9]{4,5}/.test(inputYear.value)) {
             yearSpan.textContent = inputYear.value;
-            instance.date = new Date(+inputYear.value, instance.date.getMonth(), instance.date.getDate());
+            instance.#date = new Date(+inputYear.value, instance.#date.getMonth(), instance.#date.getDate());
             const monthSpan = tableContainer.parentElement.querySelector('.cal-month');
             DateRangePicker.#generateMonthSelector(instance, tableContainer, monthSpan);
         } else {
@@ -68,8 +68,10 @@ class DateRangePicker {
         tableContainer.appendChild(yearSelector);
     }
 
-    static #handleClickDate(instance, tableContainer, target) {
-        console.log(target.dataset.date);
+    static #formatDate(date) {
+        const month = date.getMonth()+1 > 9 ? `${date.getMonth()+1}` : `0${date.getMonth()+1}`;
+        const day = date.getDate() > 9 ? `${date.getDate()}` : `0${date.getDate()}`;
+        return `${date.getFullYear()}/${month}/${day}`;
     }
 
     static #generateYearSelector(instance, tableContainer, yearSpan) {
@@ -100,7 +102,7 @@ class DateRangePicker {
             const target = e.target;
             if(target.nodeName.toLowerCase() === 'td'){
                 yearSpan.textContent = target.dataset.year;
-                instance.date = new Date(+target.dataset.year, instance.date.getMonth(), instance.date.getDate());
+                instance.#date = new Date(+target.dataset.year, instance.#date.getMonth(), instance.#date.getDate());
                 const monthSpan = tableContainer.parentElement.querySelector('.cal-month');
                 DateRangePicker.#generateMonthSelector(instance, tableContainer, monthSpan);
             }
@@ -137,9 +139,9 @@ class DateRangePicker {
             const target = e.target;
             if(target.nodeName.toLowerCase() === 'td'){
                 monthSpan.textContent = DateRangePicker.#month[+target.dataset.month];
-                instance.date = new Date(instance.date.getFullYear(), +target.dataset.month, instance.date.getDate());
+                instance.#date = new Date(instance.#date.getFullYear(), +target.dataset.month, instance.#date.getDate());
                 tableContainer.innerHTML = '';
-                const newTable = DateRangePicker.#generateTable(instance, instance.date.getFullYear(), instance.date.getMonth())
+                const newTable = DateRangePicker.#generateTable(instance, instance.#date.getFullYear(), instance.#date.getMonth())
                 tableContainer.appendChild(newTable);
                 const btnNavContainer = tableContainer.parentElement.querySelector('.cal-nav-container');
                 btnNavContainer.classList.remove('cal-hide');
@@ -192,18 +194,26 @@ class DateRangePicker {
         tr.setAttribute('class', 'cal-row-table');
         daysBeforeFirstDayMonth.forEach(td => tr.appendChild(td));
         tbody.appendChild(tr);
-
+        let tmpDate;
         for(let i = 0; i < nbDayThisMonth; i++) {
+            tmpDate = new Date(year, month, i+1);
             if((aux+i) % 7 === 0){
                 tr = document.createElement('tr');
                 tr.setAttribute('class', 'cal-row-table');
                 tbody.appendChild(tr);
             }
             const td = document.createElement('td');
+            td.setAttribute('class', 'cal-date');
             if(i+1 === DateRangePicker.currentDate.getDate() && 
                     DateRangePicker.currentDate.getMonth() === month && 
                     DateRangePicker.currentDate.getFullYear() === year)
-                td.setAttribute('class', 'cal-current-date');
+                td.classList.add('cal-current-date');
+            if(instance.start < tmpDate && tmpDate < instance.end) 
+                td.classList.add('cal-date-in-range');
+            if(DateRangePicker.#formatDate(instance.start) === DateRangePicker.#formatDate(tmpDate))
+                td.classList.add('cal-start');
+            if(DateRangePicker.#formatDate(instance.end) === DateRangePicker.#formatDate(tmpDate))
+                td.classList.add('cal-end');
             td.textContent = `${i+1}`;
             td.dataset.date = `${year}/${month+1 > 9 ? month+1 : '0'+(month+1)}/${i+1 > 9 ? i+1 : '0'+(i+1)}`;
             tr.appendChild(td);
@@ -212,65 +222,67 @@ class DateRangePicker {
         tbody.onclick = (e) => {
             const target = e.target;
             if(target.nodeName.toLowerCase() === 'td'){
-                DateRangePicker.#handleClickDate(instance, tbody.parentElement.parentElement, target);
+                instance.#handleClickDate(target);
             }
         };
     }
 
+    #dateSelected = new Date(DateRangePicker.currentDate.getFullYear(), DateRangePicker.currentDate.getMonth(), 1);
+    #target = null;
+    #calendar = null;
+    #start = DateRangePicker.currentDate;
+    #end = DateRangePicker.currentDate;
+    #step = 0;
+
+
     constructor(selector) {
-        this.target = document.querySelector(selector);
-        this.dateSelected = new Date(DateRangePicker.currentDate.getFullYear(), DateRangePicker.currentDate.getMonth(), 1);
-        this.calendar = this.#init();
-        this.target?.addEventListener('click', (e) => {
-            DateRangePicker.#handleClickTarget(this.target, this.calendar);
+        this.#target = document.querySelector(selector);
+        this.#target.classList.add('cal-input-range');
+        this.#calendar = this.#init();
+        this.#target?.addEventListener('click', (e) => {
+            DateRangePicker.#handleClickTarget(this.#target, this.#calendar);
         });
-        this.startSelected = null;
-        this.endSelected = null;
+        document.body.onclick = (e) => {
+            let target = e.target;
+            while(!target.classList.contains('cal-container') && !target.classList.contains('cal-input-range') && target.nodeName.toLowerCase() !== 'body') {
+                target = target.parentElement;
+            }
+            if(target.nodeName.toLowerCase() === 'body')
+                this.#calendar.setAttribute('class', 'cal-container cal-hide');
+        };
     }
 
-    get date() {
-        return this.dateSelected;
+    get #date() {
+        return this.#dateSelected;
     }
 
-    set date(newDate) {
+    set #date(newDate) {
         try {
-            this.dateSelected = new Date(newDate);
+            this.#dateSelected = new Date(newDate);
         } catch (error) {
             console.error("Date invalide");
-            alert("Date invalide.")
+            alert("Date invalide.");
+            throw error;
         }
     }
 
     get start() {
-        return this.startSelected;
-    }
-
-    set start(value) {
-        try {
-            this.start = new Date(value);
-        } catch (error) {
-            console.error("Date invalide");
-            alert("Date invalide.")
-        }
+        return this.#start;
     }
 
     get end() {
-        return this.endSelected;
-    }
-
-    set end(value) {
-        try {
-            this.endSelected = new Date(value);
-        } catch (error) {
-            console.error("Date invalide");
-            alert("Date invalide.")
-        }
+        return this.#end;
     }
 
     getRange() {
+        if(this.#step === 1)
+            return {
+                start: this.#start,
+                end: null
+            };
         return {
-            start: this.startSelected,
-            end: this.endSelected
+            start: this.#start,
+            end: this.#end
         };
     }
 
@@ -282,7 +294,7 @@ class DateRangePicker {
         const btnNavPrev = document.createElement('button');
         const btnNavNext = document.createElement('button');
         const tableContainer = document.createElement('div');
-        const table = DateRangePicker.#generateTable(this, this.dateSelected.getFullYear(), this.dateSelected.getMonth());
+        const table = DateRangePicker.#generateTable(this, this.#dateSelected.getFullYear(), this.#dateSelected.getMonth());
         
 
         calContainer.setAttribute('class', 'cal-container cal-hide');
@@ -292,11 +304,10 @@ class DateRangePicker {
         btnNavPrev.setAttribute('class', 'cal-nav nav-prev');
         btnNavNext.setAttribute('class', 'cal-nav nav-next');
         tableContainer.setAttribute('class', 'cal-table-container');
-        
 
         calSelectContainer.innerHTML = `
-            <span class="cal-month" data-month="${this.dateSelected.getMonth()}">${DateRangePicker.#month[this.dateSelected.getMonth()]}</span>&nbsp;&nbsp;
-            <span class="cal-year" data-year="${this.dateSelected.getFullYear()}">${this.dateSelected.getFullYear()}</span>
+            <span class="cal-month" data-month="${this.#dateSelected.getMonth()}">${DateRangePicker.#month[this.#dateSelected.getMonth()]}</span>&nbsp;&nbsp;
+            <span class="cal-year" data-year="${this.#dateSelected.getFullYear()}">${this.#dateSelected.getFullYear()}</span>
             <hr/>
         `;
         calSelectContainer.onclick = (e) => {
@@ -305,11 +316,11 @@ class DateRangePicker {
 
         btnNavPrev.textContent = '‹';
         btnNavPrev.onclick = (e) => {
-            DateRangePicker.#handleClickBtnNav (this, this.dateSelected, this.calendar, 'prev');
+            DateRangePicker.#handleClickBtnNav (this, this.#dateSelected, this.#calendar, 'prev');
         };
         btnNavNext.textContent = '›';
         btnNavNext.onclick = (e) => {
-            DateRangePicker.#handleClickBtnNav(this, this.dateSelected, this.calendar, 'next');
+            DateRangePicker.#handleClickBtnNav(this, this.#dateSelected, this.#calendar, 'next');
         };
         calNavContainer.appendChild(btnNavPrev);
         calNavContainer.appendChild(btnNavNext);
@@ -321,5 +332,71 @@ class DateRangePicker {
         calContainer.appendChild(tableContainer);
         document.body.appendChild(calContainer);
         return calContainer;
+    }
+
+    #stepZero(target) {
+        try {
+            this.#start = new Date(target.dataset.date);
+        } catch (error) {
+            console.error("Date invalide");
+            alert("Date invalide.");
+            throw error;
+        }
+        const tdsDateInRange = this.#calendar.querySelectorAll(`td.cal-date`);
+        tdsDateInRange.forEach(td => td.classList.remove('cal-date-in-range'));
+        const tdEnd = document.querySelector('.cal-end');
+        if(tdEnd)
+            tdEnd.classList.remove('cal-end');
+        const tdStart = document.querySelector('td.cal-start');
+        if(tdStart)
+            tdStart.classList.remove('cal-start');
+        target.classList.add('cal-start');
+        this.#step = 1;
+    }
+
+    #stepOne(target) {
+        let tmpDate;
+        try {
+            tmpDate = new Date(target.dataset.date);
+            if(tmpDate >= this.#start)
+                this.#end = tmpDate;
+            else {
+                this.#stepZero(target);
+                return;
+            }
+        } catch (error) {
+            console.error("Date invalide");
+            alert("Date invalide.");
+            throw error;
+        }
+        document.querySelectorAll('.cal-date-in-range').forEach(td => td.classList.remove('cal-date-in-range'));
+        const tdEnd = document.querySelector('td.cal-end');
+        if(tdEnd)
+            tdEnd.classList.remove('cal-end');
+        target.classList.add('cal-end');
+        this.#step = 0;
+        const tdsDate = this.#calendar.querySelectorAll(`td.cal-date`);
+        const tdsDateInRange = Array.from(tdsDate).filter(td => {
+            let tmpDateBis;
+            try {
+                tmpDateBis = new Date(td.dataset.date);
+            } catch (error) {
+                alert("Date invalide");
+                console.error("Date invalide");
+                throw error;
+            }
+            return this.#start <= tmpDateBis && tmpDateBis <= this.#end;
+        });
+        tdsDateInRange.forEach(td => td.classList.add('cal-date-in-range'));
+        this.#target.value = `${DateRangePicker.#formatDate(this.#start)} - ${DateRangePicker.#formatDate(this.#end)}`;
+        this.#calendar.setAttribute('class', 'cal-container cal-hide');
+    }
+
+    #handleClickDate(target) {
+        if(this.#step === 0){
+            this.#stepZero(target);
+        } else if(this.#step === 1) {
+            this.#stepOne(target);
+        }
     }
 }

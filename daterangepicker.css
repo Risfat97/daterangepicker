@@ -19,6 +19,7 @@
     --col-light: #f4f4f4;
     --col-gray: #c4c4c4;
     --col-dark-blue: #2C3E50;
+    --col-light-blue: rgb(214, 234, 248);
 }
 
 @keyframes fadeUp {
@@ -143,4 +144,16 @@ td.cal-current-month {
 td.cal-current-month,
 td.cal-current-year {
     border-radius: 10rem;
+}
+
+.cal-date-in-range {
+    background-color: var(--col-light-blue);
+}
+
+.cal-start, 
+.cal-end {
+    background-color: var(--col-dark-blue);
+    color: #fff;
+    border: 1px solid var(--col-dark-blue);
+    border-radius: 50%;
 }
