@@ -96,7 +96,7 @@ Ainsi le mois de l'année choisi sera affiché.
 #### Methodes de classe
 
 * getRange : retourne la période choisie sous format JSON avec les clés `start` et `end`
-* getCallBack: retourne la dernière valeur retournée par le callback passé en argument au constructeur de DateRangePicker dans les options. 
+* getCallBackReturn: retourne la dernière valeur retournée par le callback passé en argument au constructeur de DateRangePicker dans les options. 
 
 
 
