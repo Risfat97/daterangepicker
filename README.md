@@ -46,7 +46,7 @@ const rangePicker = new DateRangePicker(selector)
 DateRangePicker prend 1 seul argument:
 
 `selector` - une seule possibilités:
-    `string` - un sélecteur CSS comme `'.my-class'`, `'#my-id'`, ou `'div'`.
+    `string` - un sélecteur CSS comme `'.my-class'`, `'#my-id'`, ou `'input'`.
 
 La valeur de retour du contructeur est une instance de DateRangePicker.
 
