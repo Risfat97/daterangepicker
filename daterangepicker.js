@@ -372,7 +372,7 @@ class DateRangePicker {
             alert("Date invalide.");
             throw error;
         }
-        const tdsDateInRange = this.#calendar.querySelectorAll(`td.cal-date`);
+        const tdsDateInRange = this.#calendar.querySelectorAll(`td.cal-date-in-range`);
         tdsDateInRange.forEach(td => td.classList.remove('cal-date-in-range'));
         const tdEnd = document.querySelector('.cal-end');
         if(tdEnd)
