@@ -51,14 +51,14 @@ DateRangePicker prend 2 arguments:
 `options` - un JSON pouvant contenir les clés suivantes:
 * `start` - la date de début initiale choisie
 * `end` - la date de fin initiale choisie
-* `onchange` - un callback prenant au miminum deux arguments dont les 2 premiers arguments sont une de début et une date de fin, qui est appelé à chaque fois qu'une période est choisie
+* `onchange` - un callback prenant au miminum deux arguments dont les 2 premiers arguments sont une date de début et une date de fin, qui est appelé à chaque fois qu'une période est choisie
     Exemple: 
     ```javascript
     const refreshStats = (start, end, data) => {
       // Instructions
     };
     ```
-* `args` - les arguments à passer au callback à l'exception des deux premiers arguments qui sont fourni à l'intérieur de la classe DateRangePicker 
+* `args` - les arguments à passer au callback à l'exception des deux premiers arguments qui sont fournis à l'intérieur de la classe DateRangePicker 
 
 La valeur de retour du contructeur est une instance de DateRangePicker.
 
