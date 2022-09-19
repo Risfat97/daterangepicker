@@ -136,6 +136,7 @@
 
 .cal-row-table > td {
     cursor: pointer;
+    height: 28px;
 }
 
 .cal-input-container {
@@ -174,12 +175,12 @@ td.cal-current-date,
 td.cal-current-year,
 td.cal-current-month {
     border: 1px solid var(--col-dark-blue);
-    border-radius: 50%;
+    border-radius: 5px;
 }
 
 td.cal-current-month,
 td.cal-current-year {
-    border-radius: 10rem;
+    border-radius: 5px;
 }
 
 .cal-date-in-range {
@@ -191,5 +192,14 @@ td.cal-current-year {
     background-color: var(--col-dark-blue);
     color: #fff;
     border: 1px solid var(--col-dark-blue);
-    border-radius: 50%;
+}
+
+.cal-start {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.cal-end {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
 }

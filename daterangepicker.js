@@ -230,27 +230,52 @@ class DateRangePicker {
 
     #dateSelected = new Date(DateRangePicker.currentDate.getFullYear(), DateRangePicker.currentDate.getMonth(), 1);
     #target = null;
+    #callback = null;
+    #args = null;
     #calendar = null;
     #start = DateRangePicker.currentDate;
     #end = DateRangePicker.currentDate;
     #step = 0;
+    #callbackReturn = null;
 
 
-    constructor(selector) {
+    constructor(selector, options = {
+        onchange: null,
+        args: null
+    }) {
+        if(options && options.onchange && options.onchange instanceof Function && options.onchange.length >= 2){
+            this.#callback = options.onchange;
+            if(options.args && options.args instanceof Array){
+                this.#args = options.args;
+            } else {
+                throw new Error("args doit être de type Array");
+            }
+        } else if(options && options.onchange){
+            throw new Error("onchange doit être de type Function et ses deux premiers arguments doivent être des dates (en string ou un objet Date).");
+        }
+        if(options && options.start && options.end){
+            try {
+                this.#start = new Date(options.start);
+                this.#end = new Date(options.end);
+            } catch (error) {
+                throw new Error("Date de début ou date de fin invalide.");
+            }
+        } else if(options && options.start) {
+            try {
+                this.#start = new Date(options.start);
+            } catch (error) {
+                throw new Error("Date de début invalide.");
+            }
+        } else if(options && options.end) {
+            throw new Error("Date de début inconnue.");
+        }
         this.#target = document.querySelector(selector);
         this.#target.classList.add('cal-input-range');
         this.#calendar = this.#init();
+        this.#target.value = `${DateRangePicker.#formatDate(this.#start)} - ${DateRangePicker.#formatDate(this.#end)}`;
         this.#target?.addEventListener('click', (e) => {
             DateRangePicker.#handleClickTarget(this.#target, this.#calendar);
         });
-        document.body.onclick = (e) => {
-            let target = e.target;
-            while(!target.classList.contains('cal-container') && !target.classList.contains('cal-input-range') && target.nodeName.toLowerCase() !== 'body') {
-                target = target.parentElement;
-            }
-            if(target.nodeName.toLowerCase() === 'body')
-                this.#calendar.setAttribute('class', 'cal-container cal-hide');
-        };
     }
 
     get #date() {
@@ -265,6 +290,10 @@ class DateRangePicker {
             alert("Date invalide.");
             throw error;
         }
+    }
+
+    getCallbackReturn() {
+        return this.#callbackReturn;
     }
 
     get start() {
@@ -391,6 +420,8 @@ class DateRangePicker {
         tdsDateInRange.forEach(td => td.classList.add('cal-date-in-range'));
         this.#target.value = `${DateRangePicker.#formatDate(this.#start)} - ${DateRangePicker.#formatDate(this.#end)}`;
         this.#calendar.setAttribute('class', 'cal-container cal-hide');
+        if(this.#callback && this.#args)
+            this.#callbackReturn = this.#callback.apply(null, [this.#start, this.#end, ...this.#args]);
     }
 
     #handleClickDate(target) {
