@@ -96,8 +96,19 @@ Ainsi le mois de l'année choisi sera affiché.
 #### Methodes de classe
 
 * getRange : retourne la période choisie sous format JSON avec les clés `start` et `end`
-* getCallBackReturn: retourne la dernière valeur retournée par le callback passé en argument au constructeur de DateRangePicker dans les options. 
+* getCallBackReturn: retourne la dernière valeur retournée par le callback passé en argument au constructeur de DateRangePicker dans les options.
+* get callback: retourne le callback passé en options dans le constructeur de DateRangePicker
+* set callback: permet de modifier le callback en lui passant un nouveau callback comme suit:
+```javascript
+  rangePicker.callback = (start, end, x) => console.log(start, end, x);
+```
+* get args: retourne les arguments passés en options dans le constructeur de DateRangePicker
+* set args: permet de modifier les arguments comme suit:
+```javascript
+  rangePicker.args = [document.body];
+```
 
 
+License MIT
 
-### Copyright 2022, Tafsir NDIOUR
+##### Copyright 2022, Tafsir NDIOUR
