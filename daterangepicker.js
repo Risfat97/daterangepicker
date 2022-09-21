@@ -276,6 +276,10 @@ class DateRangePicker {
         this.#target?.addEventListener('click', (e) => {
             DateRangePicker.#handleClickTarget(this.#target, this.#calendar);
         });
+        document.body.addEventListener('click', e => {
+            if(this.#target !== e.target && !this.#calendar.contains(e.target))
+                this.#calendar.setAttribute('class', 'cal-container cal-hide');
+        });
     }
 
     get #date() {
@@ -289,6 +293,30 @@ class DateRangePicker {
             console.error("Date invalide");
             alert("Date invalide.");
             throw error;
+        }
+    }
+
+    get callback() {
+        return this.#callback;
+    }
+
+    set callback(newCallback) {
+        if(newCallback instanceof Function && newCallback.length >= 2){
+            this.#callback = newCallback;
+        } else {
+            throw new Error("onchange doit être de type Function et ses deux premiers arguments doivent être des dates (en string ou un objet Date).");
+        }
+    }
+
+    get args() {
+        return this.#args;
+    }
+
+    set args(newArgs) {
+        if(newArgs instanceof Array){
+            this.#args = newArgs;
+        } else {
+            throw new Error("args doit être de type Array");
         }
     }
 
