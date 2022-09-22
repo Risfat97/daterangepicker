@@ -276,10 +276,10 @@ class DateRangePicker {
         this.#target?.addEventListener('click', (e) => {
             DateRangePicker.#handleClickTarget(this.#target, this.#calendar);
         });
-        document.body.addEventListener('click', e => {
+        /*document.body.addEventListener('click', e => {
             if(this.#target !== e.target && !this.#calendar.contains(e.target))
                 this.#calendar.setAttribute('class', 'cal-container cal-hide');
-        });
+        });*/
     }
 
     get #date() {
