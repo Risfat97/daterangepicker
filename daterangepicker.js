@@ -42,20 +42,24 @@ class DateRangePicker {
         if(/[0-9]{4,5}/.test(inputYear.value)) {
             yearSpan.textContent = inputYear.value;
             instance.#date = new Date(+inputYear.value, instance.#date.getMonth(), instance.#date.getDate());
-            const monthSpan = tableContainer.parentElement.querySelector('.cal-month');
-            DateRangePicker.#generateMonthSelector(instance, tableContainer, monthSpan);
+            const tableMonth = tableContainer.querySelector('.cal-table-month');
+            const yearSelectorContainer = tableContainer.querySelector('.cal-year-selector-container');
+            yearSelectorContainer.classList.add('cal-hide');
+            tableMonth.classList.remove('cal-hide');
         } else {
             alert("Veuillez entrer une année correcte");
         }
     }
 
     static #handleQuickSelectClick(instance, tableContainer) {
-        tableContainer.innerHTML = `
-            <div class="cal-input-container">
-                <input class="cal-year-input" name="year-input" type="number" min="1900" max="2099" step="1" placeholder="Saisir une année"/>
-                <button type="button" class="cal-btn-select-year">Choisir</button>
-            </div>
-        `;
+        const tableDay = tableContainer.querySelector('.cal-table-day');
+        if(tableDay)
+            tableDay.classList.add('cal-hide');
+
+        const yearSelectorContainer = tableContainer.querySelector('.cal-year-selector-container');
+        if(yearSelectorContainer)
+            yearSelectorContainer.classList.remove('cal-hide');
+
         const btnSelectYear = tableContainer.querySelector('button.cal-btn-select-year');
         const inputYear = tableContainer.querySelector('input.cal-year-input');
         const yearSpan = tableContainer.parentElement.querySelector('.cal-year');
@@ -64,8 +68,6 @@ class DateRangePicker {
             DateRangePicker.#handleClickBtnSelectYear(inputYear, instance, tableContainer, yearSpan);
         };
         btnNavContainer.classList.add('cal-hide');
-        const yearSelector = DateRangePicker.#generateYearSelector(instance, tableContainer, yearSpan);
-        tableContainer.appendChild(yearSelector);
     }
 
     static #formatDate(date) {
@@ -74,11 +76,21 @@ class DateRangePicker {
         return `${date.getFullYear()}/${month}/${day}`;
     }
 
-    static #generateYearSelector(instance, tableContainer, yearSpan) {
+    static #generateYearSelector(instance, tableContainer) {
+        const yearSelectorContainer = document.createElement('div');
+        yearSelectorContainer.setAttribute('class', 'cal-year-selector-container cal-hide');
+
+        const divInputContainer = document.createElement('div');
+        divInputContainer.setAttribute('class', 'cal-input-container');
+        divInputContainer.innerHTML = `
+            <input class="cal-year-input" name="year-input" type="number" min="1900" max="2099" step="1" placeholder="Saisir une année"/>
+            <button type="button" class="cal-btn-select-year">Choisir</button>
+        `;
+
         const tableElem = document.createElement('table');
         const tbody = document.createElement('tbody');
 
-        tableElem.setAttribute('class', 'cal-table');
+        tableElem.setAttribute('class', 'cal-table cal-table-year');
         tbody.setAttribute('class', 'cal-body-table');
         let tr;
         const currentYear = DateRangePicker.currentDate.getFullYear();
@@ -101,22 +113,26 @@ class DateRangePicker {
         tbody.onclick = (e) => {
             const target = e.target;
             if(target.nodeName.toLowerCase() === 'td'){
+                const yearSpan = tableContainer.parentElement.querySelector('.cal-year');
                 yearSpan.textContent = target.dataset.year;
                 instance.#date = new Date(+target.dataset.year, instance.#date.getMonth(), instance.#date.getDate());
-                const monthSpan = tableContainer.parentElement.querySelector('.cal-month');
-                DateRangePicker.#generateMonthSelector(instance, tableContainer, monthSpan);
+                yearSelectorContainer.classList.add('cal-hide');
+                const tableMonth = tableContainer.querySelector('.cal-table-month');
+                if(tableMonth)
+                    tableMonth.classList.remove('cal-hide');
             }
         };
         tableElem.appendChild(tbody);
-        return tableElem;
+        yearSelectorContainer.appendChild(divInputContainer);
+        yearSelectorContainer.appendChild(tableElem);
+        return yearSelectorContainer;
     }
 
-    static #generateMonthSelector(instance, tableContainer, monthSpan) {
-        tableContainer.innerHTML = '';
+    static #generateMonthSelector(instance, tableContainer) {
         const tableElem = document.createElement('table');
         const tbody = document.createElement('tbody');
 
-        tableElem.setAttribute('class', 'cal-table');
+        tableElem.setAttribute('class', 'cal-table cal-table-month cal-hide');
         tbody.setAttribute('class', 'cal-body-table');
         let tr;
         const currentMonth = DateRangePicker.currentDate.getMonth();
@@ -138,17 +154,21 @@ class DateRangePicker {
         tbody.onclick = (e) => {
             const target = e.target;
             if(target.nodeName.toLowerCase() === 'td'){
+                const monthSpan =  tableContainer.parentElement.querySelector('.cal-month');
                 monthSpan.textContent = DateRangePicker.#month[+target.dataset.month];
                 instance.#date = new Date(instance.#date.getFullYear(), +target.dataset.month, instance.#date.getDate());
-                tableContainer.innerHTML = '';
-                const newTable = DateRangePicker.#generateTable(instance, instance.#date.getFullYear(), instance.#date.getMonth())
-                tableContainer.appendChild(newTable);
+                tableElem.classList.add('cal-hide');
+                let tableDay = tableContainer.querySelector('.cal-table-day');
+                if(tableDay) {
+                    DateRangePicker.#generateBodyTable(instance, tableDay.lastElementChild, instance.#date.getFullYear(), +target.dataset.month);
+                    tableDay.classList.remove('cal-hide');
+                }
                 const btnNavContainer = tableContainer.parentElement.querySelector('.cal-nav-container');
                 btnNavContainer.classList.remove('cal-hide');
             }
         };
         tableElem.appendChild(tbody);
-        tableContainer.appendChild(tableElem);
+        return tableElem;
     }
 
     static #generateTable(instance, year, month) {
@@ -156,7 +176,7 @@ class DateRangePicker {
         const thead = document.createElement('thead');
         const tbody = document.createElement('tbody');
 
-        tableElem.setAttribute('class', 'cal-table');
+        tableElem.setAttribute('class', 'cal-table cal-table-day');
         thead.setAttribute('class', 'cal-head-table');
         tbody.setAttribute('class', 'cal-body-table');
 
@@ -276,10 +296,10 @@ class DateRangePicker {
         this.#target?.addEventListener('click', (e) => {
             DateRangePicker.#handleClickTarget(this.#target, this.#calendar);
         });
-        /*document.body.addEventListener('click', e => {
+        document.body.addEventListener('click', e => {
             if(this.#target !== e.target && !this.#calendar.contains(e.target))
                 this.#calendar.setAttribute('class', 'cal-container cal-hide');
-        });*/
+        });
     }
 
     get #date() {
@@ -352,7 +372,7 @@ class DateRangePicker {
         const btnNavPrev = document.createElement('button');
         const btnNavNext = document.createElement('button');
         const tableContainer = document.createElement('div');
-        const table = DateRangePicker.#generateTable(this, this.#dateSelected.getFullYear(), this.#dateSelected.getMonth());
+        const tableDay = DateRangePicker.#generateTable(this, this.#dateSelected.getFullYear(), this.#dateSelected.getMonth());
         
 
         calContainer.setAttribute('class', 'cal-container cal-hide');
@@ -386,8 +406,14 @@ class DateRangePicker {
         calHeader.appendChild(calNavContainer);
 
         calContainer.appendChild(calHeader);
-        tableContainer.appendChild(table);
+        tableContainer.appendChild(tableDay);
         calContainer.appendChild(tableContainer);
+
+        const tableMonth = DateRangePicker.#generateMonthSelector(this, tableContainer);
+        const tableYear = DateRangePicker.#generateYearSelector(this, tableContainer);
+        tableContainer.appendChild(tableMonth);
+        tableContainer.appendChild(tableYear);
+
         document.body.appendChild(calContainer);
         return calContainer;
     }
